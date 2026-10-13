@@ -1,0 +1,176 @@
+<p-toast></p-toast>
+<p-confirm-dialog></p-confirm-dialog>
+
+<div class="flex flex-column gap-4">
+  <div class="flex flex-column sm:flex-row sm:align-items-center justify-content-between gap-3">
+    <div>
+      <h1 class="text-3xl font-bold text-900 m-0">Expenses</h1>
+      <p class="text-600 mt-1 mb-0">Manage, filter, and track all corporate expense transactions.</p>
+    </div>
+    <div>
+      <button pButton label="Add Expense" icon="pi pi-plus" class="p-button-primary" (click)="openAddDialog()"></button>
+    </div>
+  </div>
+
+  <div class="surface-card p-4 border-round-xl">
+    <div class="grid">
+      <div class="col-12 md:col-3">
+        <span class="p-input-icon-left w-full">
+          <i class="pi pi-search"></i>
+          <input 
+            type="text" 
+            pInputText 
+            [(ngModel)]="searchQuery" 
+            (input)="onFilterChange()" 
+            placeholder="Search description..." 
+            class="w-full" />
+        </span>
+      </div>
+
+      <div class="col-12 sm:col-6 md:col-3">
+        <p-select 
+          [options]="categories" 
+          [(ngModel)]="selectedCategory" 
+          (onChange)="onFilterChange()" 
+          placeholder="All Categories" 
+          [showClear]="true" 
+          styleClass="w-full">
+        </p-select>
+      </div>
+
+      <div class="col-12 sm:col-6 md:col-3">
+        <p-select 
+          [options]="paymentMethods" 
+          [(ngModel)]="selectedPaymentMethod" 
+          (onChange)="onFilterChange()" 
+          placeholder="All Payment Methods" 
+          [showClear]="true" 
+          styleClass="w-full">
+        </p-select>
+      </div>
+
+      <div class="col-12 sm:col-8 md:col-2">
+        <p-datepicker 
+          [(ngModel)]="dateRange" 
+          selectionMode="range" 
+          (onSelect)="onFilterChange()" 
+          (onClear)="onFilterChange()"
+          placeholder="Date Range" 
+          [showClear]="true" 
+          [readonlyInput]="true" 
+          styleClass="w-full" 
+          appendTo="body">
+        </p-datepicker>
+      </div>
+
+      <div class="col-12 sm:col-4 md:col-1 flex align-items-center justify-content-end">
+        <button pButton icon="pi pi-filter-slash" class="p-button-outlined p-button-secondary w-full" (click)="clearFilters()" pTooltip="Clear Filters"></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="surface-card border-round-xl overflow-hidden">
+    <p-table 
+      [value]="expenses" 
+      [loading]="isLoading" 
+      [paginator]="true" 
+      [rows]="10" 
+      [rowsPerPageOptions]="[5, 10, 25]" 
+      responsiveLayout="scroll" 
+      styleClass="p-datatable-striped">
+      
+      <ng-template pTemplate="header">
+        <tr>
+          <th pSortableColumn="date">Date <p-sort-icon field="date"></p-sort-icon></th>
+          <th pSortableColumn="description">Description <p-sort-icon field="description"></p-sort-icon></th>
+          <th pSortableColumn="category">Category <p-sort-icon field="category"></p-sort-icon></th>
+          <th pSortableColumn="paymentMethod">Payment Method <p-sort-icon field="paymentMethod"></p-sort-icon></th>
+          <th pSortableColumn="amount" class="text-right">Amount <p-sort-icon field="amount"></p-sort-icon></th>
+          <th class="text-center">Actions</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-expense>
+        <tr>
+          <td>{{ expense.date | date:'mediumDate' }}</td>
+          <td class="font-medium text-900">{{ expense.description }}</td>
+          <td>
+            <p-tag [value]="expense.category" [severity]="getCategorySeverity(expense.category)"></p-tag>
+          </td>
+          <td>
+            <span class="text-600 text-sm flex align-items-center gap-1">
+              <i class="pi pi-credit-card text-xs"></i> {{ expense.paymentMethod }}
+            </span>
+          </td>
+          <td class="text-right font-bold text-900">
+            {{ expense.amount | currency:'USD':'symbol':'1.2-2' }}
+          </td>
+          <td class="text-center">
+            <div class="flex justify-content-center gap-1">
+              <button pButton icon="pi pi-eye" class="p-button-text p-button-rounded p-button-info" (click)="viewDetails(expense)" pTooltip="View Details"></button>
+              <button pButton icon="pi pi-pencil" class="p-button-text p-button-rounded p-button-warning" (click)="openEditDialog(expense)" pTooltip="Edit"></button>
+              <button pButton icon="pi pi-trash" class="p-button-text p-button-rounded p-button-danger" (click)="confirmDelete(expense)" pTooltip="Delete"></button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="6" class="text-center py-6">
+            <div class="flex flex-column align-items-center gap-2">
+              <i class="pi pi-inbox text-5xl text-400"></i>
+              <span class="font-medium text-700 text-lg">No expenses found</span>
+              <span class="text-500 text-sm">Try adjusting your filters or add a new expense.</span>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>
+
+<p-dialog 
+  header="Expense Details" 
+  [(visible)]="isDetailsDialogVisible" 
+  [modal]="true" 
+  [style]="{ width: '90%', maxWidth: '450px' }" 
+  [draggable]="false" 
+  [resizable]="false">
+  
+  <div *ngIf="selectedExpenseForView" class="flex flex-column gap-3 py-2">
+    <div class="flex justify-content-between align-items-center border-bottom-1 border-200 pb-3">
+      <span class="text-500 font-medium text-sm">Amount</span>
+      <span class="text-2xl font-bold text-primary">{{ selectedExpenseForView.amount | currency:'USD':'symbol':'1.2-2' }}</span>
+    </div>
+
+    <div class="flex justify-content-between">
+      <span class="text-500 text-sm">Description</span>
+      <span class="font-medium text-900 text-right">{{ selectedExpenseForView.description }}</span>
+    </div>
+
+    <div class="flex justify-content-between">
+      <span class="text-500 text-sm">Category</span>
+      <p-tag [value]="selectedExpenseForView.category" [severity]="getCategorySeverity(selectedExpenseForView.category)"></p-tag>
+    </div>
+
+    <div class="flex justify-content-between">
+      <span class="text-500 text-sm">Payment Method</span>
+      <span class="font-medium text-900">{{ selectedExpenseForView.paymentMethod }}</span>
+    </div>
+
+    <div class="flex justify-content-between">
+      <span class="text-500 text-sm">Date</span>
+      <span class="font-medium text-900">{{ selectedExpenseForView.date | date:'fullDate' }}</span>
+    </div>
+
+    <div *ngIf="selectedExpenseForView.notes" class="flex flex-column gap-1 pt-2 border-top-1 border-200">
+      <span class="text-500 text-sm">Notes</span>
+      <p class="text-700 m-0 text-sm surface-100 p-2 border-round">{{ selectedExpenseForView.notes }}</p>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <button pButton label="Close" icon="pi pi-times" class="p-button-text" (click)="isDetailsDialogVisible = false"></button>
+  </ng-template>
+</p-dialog>

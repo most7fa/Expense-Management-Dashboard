@@ -1,0 +1,108 @@
+<div class="flex flex-column gap-4">
+  <!-- Page Header -->
+  <div>
+    <h1 class="text-3xl font-bold text-900 m-0">Dashboard</h1>
+    <p class="text-600 mt-1 mb-0">Overview of company expense analytics and transaction metrics.</p>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="flex justify-content-center align-items-center py-8">
+    <p-progress-spinner strokeWidth="4"></p-progress-spinner>
+  </div>
+
+  <ng-container *ngIf="!isLoading && summaryData">
+    <!-- Metric KPI Cards Grid -->
+    <div class="grid">
+      <!-- Total Expenses -->
+      <div class="col-12 sm:col-6 lg:col-3">
+        <div class="surface-card p-4 border-round-xl">
+          <div class="flex justify-content-between mb-3">
+            <div>
+              <span class="block text-500 font-medium mb-2 text-sm">Total Expenses</span>
+              <div class="text-900 font-bold text-2xl">
+                {{ summaryData.totalExpenses | currency:'USD':'symbol':'1.0-0' }}
+              </div>
+            </div>
+            <div class="w-3rem h-3rem flex align-items-center justify-content-center bg-blue-100 border-round">
+              <i class="pi pi-dollar text-blue-500 text-xl"></i>
+            </div>
+          </div>
+          <span class="text-500 text-xs">All time accumulated</span>
+        </div>
+      </div>
+
+      <!-- Current Month -->
+      <div class="col-12 sm:col-6 lg:col-3">
+        <div class="surface-card p-4 border-round-xl">
+          <div class="flex justify-content-between mb-3">
+            <div>
+              <span class="block text-500 font-medium mb-2 text-sm">Current Month</span>
+              <div class="text-900 font-bold text-2xl">
+                {{ summaryData.currentMonthExpenses | currency:'USD':'symbol':'1.0-0' }}
+              </div>
+            </div>
+            <div class="w-3rem h-3rem flex align-items-center justify-content-center bg-green-100 border-round">
+              <i class="pi pi-calendar text-green-500 text-xl"></i>
+            </div>
+          </div>
+          <span class="text-500 text-xs">This month's spending</span>
+        </div>
+      </div>
+
+      <!-- Previous Month -->
+      <div class="col-12 sm:col-6 lg:col-3">
+        <div class="surface-card p-4 border-round-xl">
+          <div class="flex justify-content-between mb-3">
+            <div>
+              <span class="block text-500 font-medium mb-2 text-sm">Previous Month</span>
+              <div class="text-900 font-bold text-2xl">
+                {{ summaryData.previousMonthExpenses | currency:'USD':'symbol':'1.0-0' }}
+              </div>
+            </div>
+            <div class="w-3rem h-3rem flex align-items-center justify-content-center bg-orange-100 border-round">
+              <i class="pi pi-history text-orange-500 text-xl"></i>
+            </div>
+          </div>
+          <span class="text-500 text-xs">Last month's total</span>
+        </div>
+      </div>
+
+      <!-- Transactions & Top Category -->
+      <div class="col-12 sm:col-6 lg:col-3">
+        <div class="surface-card p-4 border-round-xl">
+          <div class="flex justify-content-between mb-3">
+            <div>
+              <span class="block text-500 font-medium mb-2 text-sm">Top Category</span>
+              <div class="text-900 font-bold text-lg text-ellipse overflow-hidden">
+                {{ summaryData.topCategory?.category || 'N/A' }}
+              </div>
+            </div>
+            <div class="w-3rem h-3rem flex align-items-center justify-content-center bg-purple-100 border-round">
+              <i class="pi pi-star text-purple-500 text-xl"></i>
+            </div>
+          </div>
+          <span class="text-500 text-xs">{{ summaryData.totalTransactions }} Total Transactions</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="grid">
+      <!-- Monthly Bar Chart -->
+      <div class="col-12 lg:col-7">
+        <div class="surface-card p-4 border-round-xl">
+          <h2 class="text-xl font-bold text-900 mb-4">Expenses by Month</h2>
+          <p-chart type="bar" [data]="monthlyChartData" [options]="monthlyChartOptions" height="320px"></p-chart>
+        </div>
+      </div>
+
+      <!-- Category Doughnut Chart -->
+      <div class="col-12 lg:col-5">
+        <div class="surface-card p-4 border-round-xl">
+          <h2 class="text-xl font-bold text-900 mb-4">Expenses by Category</h2>
+          <p-chart type="doughnut" [data]="categoryChartData" [options]="categoryChartOptions" height="320px"></p-chart>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</div>

@@ -1,0 +1,32 @@
+/* تخصيص جدول PrimeNG ليصبح متناسقاً مع Tailwind */
+.p-datatable .p-datatable-thead > tr > th {
+  background-color: #f8fafc !important;
+  color: #475569 !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  padding: 0.85rem 1rem !important;
+}
+
+/* تحسين شكل الـ Paginator وإزالة التشوه الظاهر في الصورة */
+.p-paginator {
+  background-color: #ffffff !important;
+  border-top: 1px solid #f1f5f9 !important;
+  padding: 0.75rem 1rem !important;
+  border-radius: 0 0 1rem 1rem !important;
+}
+
+.p-paginator .p-paginator-pages .p-paginator-page {
+  border-radius: 0.5rem !important;
+  min-width: 2.25rem !important;
+  height: 2.25rem !important;
+}
+
+.p-paginator .p-paginator-pages .p-paginator-page.p-highlight {
+  background-color: #4f46e5 !important;
+  color: #ffffff !important;
+}
+
+/* القوائم المنسدلة */
+.p-dropdown {
+  border-radius: 0.5rem !important;
+  border-color: #cbd5e1 !important;
+}

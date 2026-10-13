@@ -1,0 +1,95 @@
+<form [formGroup]="expenseForm" (ngSubmit)="onSubmit()" class="flex flex-column gap-3 pt-2">
+  <div class="flex flex-column gap-1">
+    <label for="description" class="font-medium text-900 text-sm">Description *</label>
+    <input 
+      id="description" 
+      type="text" 
+      pInputText 
+      formControlName="description" 
+      placeholder="e.g. Monthly Office Rent" />
+    <small *ngIf="expenseForm.get('description')?.touched && expenseForm.get('description')?.invalid" class="p-error">
+      Description is required (min 3 chars).
+    </small>
+  </div>
+
+  <div class="grid">
+    <div class="col-12 sm:col-6 flex flex-column gap-1">
+      <label for="amount" class="font-medium text-900 text-sm">Amount ($) *</label>
+      <p-inputNumber 
+        id="amount" 
+        formControlName="amount" 
+        mode="currency" 
+        currency="USD" 
+        locale="en-US" 
+        placeholder="$0.00" 
+        styleClass="w-full">
+      </p-inputNumber>
+      <small *ngIf="expenseForm.get('amount')?.touched && expenseForm.get('amount')?.invalid" class="p-error">
+        Valid amount is required.
+      </small>
+    </div>
+
+    <div class="col-12 sm:col-6 flex flex-column gap-1">
+      <label for="date" class="font-medium text-900 text-sm">Date *</label>
+      <p-datepicker 
+        id="date" 
+        formControlName="date" 
+        dateFormat="yy-mm-dd" 
+        [showIcon]="true" 
+        appendTo="body" 
+        styleClass="w-full">
+      </p-datepicker>
+      <small *ngIf="expenseForm.get('date')?.touched && expenseForm.get('date')?.invalid" class="p-error">
+        Date is required.
+      </small>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="col-12 sm:col-6 flex flex-column gap-1">
+      <label for="category" class="font-medium text-900 text-sm">Category *</label>
+      <p-select 
+        id="category" 
+        [options]="categories" 
+        formControlName="category" 
+        placeholder="Select Category" 
+        appendTo="body" 
+        styleClass="w-full">
+      </p-select>
+      <small *ngIf="expenseForm.get('category')?.touched && expenseForm.get('category')?.invalid" class="p-error">
+        Category is required.
+      </small>
+    </div>
+
+    <div class="col-12 sm:col-6 flex flex-column gap-1">
+      <label for="paymentMethod" class="font-medium text-900 text-sm">Payment Method *</label>
+      <p-select 
+        id="paymentMethod" 
+        [options]="paymentMethods" 
+        formControlName="paymentMethod" 
+        placeholder="Select Payment Method" 
+        appendTo="body" 
+        styleClass="w-full">
+      </p-select>
+      <small *ngIf="expenseForm.get('paymentMethod')?.touched && expenseForm.get('paymentMethod')?.invalid" class="p-error">
+        Payment method is required.
+      </small>
+    </div>
+  </div>
+
+  <div class="flex flex-column gap-1">
+    <label for="notes" class="font-medium text-900 text-sm">Notes (Optional)</label>
+    <textarea 
+      id="notes" 
+      rows="3" 
+      pInputTextarea 
+      formControlName="notes" 
+      placeholder="Additional comments or context...">
+    </textarea>
+  </div>
+
+  <div class="flex justify-content-end gap-2 mt-3 pt-2 border-top-1 border-200">
+    <button pButton type="button" label="Cancel" class="p-button-outlined p-button-secondary" (click)="onCancel()"></button>
+    <button pButton type="submit" icon="pi pi-check">{{ isEditMode ? 'Update Expense' : 'Add Expense' }}</button>
+  </div>
+</form>
