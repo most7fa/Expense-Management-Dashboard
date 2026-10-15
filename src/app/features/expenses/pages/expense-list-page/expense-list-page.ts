@@ -178,4 +178,16 @@ export class ExpenseListPageComponent implements OnInit {
       default: return 'secondary';
     }
   }
+
+  getCategoryBadgeClass(category: string): string {
+  switch (category) {
+    case 'Rent': return 'badge-rent';
+    case 'Salaries': return 'badge-salaries';
+    case 'Utilities': return 'badge-utilities';
+    case 'Transportation': return 'badge-transportation';
+    case 'Office Supplies': return 'badge-office';
+    case 'Marketing': return 'badge-marketing';
+    default: return 'badge-other';
+  }
+}
 }
