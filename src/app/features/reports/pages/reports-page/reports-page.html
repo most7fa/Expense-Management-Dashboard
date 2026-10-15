@@ -1,1 +1,116 @@
-<p>reports-page works!</p>
+<p-toast></p-toast>
+
+<div class="flex flex-col gap-6">
+  
+  <!-- Title & Export Actions -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-3xl font-bold text-slate-900 tracking-tight m-0">Financial Reports</h1>
+      <p class="text-slate-500 text-sm mt-1 mb-0">Generate, audit, and export corporate expense statements.</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button pButton label="Export CSV" icon="pi pi-file-excel" class="p-button-outlined p-button-secondary" (click)="exportCSV()"></button>
+      <button pButton label="Export PDF" icon="pi pi-file-pdf" class="p-button-primary" (click)="exportPDF()"></button>
+    </div>
+  </div>
+
+  <!-- KPI Overview Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="surface-card p-5 border-round-xl border border-slate-200 shadow-sm flex items-center justify-between">
+      <div>
+        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Filtered Expense Total</span>
+        <h3 class="text-2xl font-bold text-slate-900 mt-1 mb-0">{{ totalReportAmount | currency:'USD':'symbol':'1.0-2' }}</h3>
+      </div>
+      <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl">
+        <i class="pi pi-dollar"></i>
+      </div>
+    </div>
+
+    <div class="surface-card p-5 border-round-xl border border-slate-200 shadow-sm flex items-center justify-between">
+      <div>
+        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Line Items</span>
+        <h3 class="text-2xl font-bold text-slate-900 mt-1 mb-0">{{ filteredData.length }} Records</h3>
+      </div>
+      <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-xl">
+        <i class="pi pi-list"></i>
+      </div>
+    </div>
+
+    <div class="surface-card p-5 border-round-xl border border-slate-200 shadow-sm flex items-center justify-between">
+      <div>
+        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Audited & Approved</span>
+        <h3 class="text-2xl font-bold text-slate-900 mt-1 mb-0">{{ approvedCount }} / {{ filteredData.length }}</h3>
+      </div>
+      <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-xl">
+        <i class="pi pi-check-circle"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter Toolbar -->
+  <div class="surface-card p-4 border-round-xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+    <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+      <div class="w-full sm:w-60">
+        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Report Preset</label>
+        <p-select 
+          [options]="reportTypes" 
+          [(ngModel)]="selectedReportType" 
+          optionLabel="label" 
+          optionValue="value" 
+          styleClass="w-full text-sm">
+        </p-select>
+      </div>
+
+      <div class="w-full sm:w-52">
+        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Category Filter</label>
+        <p-select 
+          [options]="categories" 
+          [(ngModel)]="selectedCategory" 
+          (onChange)="filterReports()" 
+          optionLabel="label" 
+          optionValue="value" 
+          styleClass="w-full text-sm">
+        </p-select>
+      </div>
+    </div>
+
+    <span class="text-xs font-medium text-slate-400">Audit Status: Syncing with LocalStorage</span>
+  </div>
+
+  <!-- Reports Table -->
+  <div class="surface-card p-5 border-round-xl border border-slate-200 shadow-sm">
+    <p-table [value]="filteredData" styleClass="p-datatable-striped">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Reference ID</th>
+          <th>Date</th>
+          <th>Category</th>
+          <th>Description</th>
+          <th>Payment Method</th>
+          <th>Status</th>
+          <th class="text-right">Amount</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-item>
+        <tr>
+          <td class="font-mono text-xs font-bold text-blue-600">{{ item.id }}</td>
+          <td class="text-slate-600 text-sm">{{ item.date | date:'mediumDate' }}</td>
+          <td class="font-semibold text-slate-800">{{ item.category }}</td>
+          <td class="text-slate-600 text-sm">{{ item.description }}</td>
+          <td class="text-slate-600 text-sm">{{ item.paymentMethod }}</td>
+          <td>
+            <p-tag [value]="item.status" [severity]="getStatusSeverity(item.status)"></p-tag>
+          </td>
+          <td class="text-right font-bold text-slate-900">{{ item.amount | currency:'USD':'symbol':'1.0-2' }}</td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="footer">
+        <tr>
+          <td colspan="6" class="text-right font-bold text-slate-900 uppercase">Total:</td>
+          <td class="text-right font-bold text-slate-900 text-lg">{{ totalReportAmount | currency:'USD':'symbol':'1.0-2' }}</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+</div>
