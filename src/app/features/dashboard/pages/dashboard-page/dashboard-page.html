@@ -14,7 +14,7 @@
 <ng-template #loadingState><div class="loading-card" *ngIf="loading">Loading dashboard…</div></ng-template>
 
 <div class="chart-grid" *ngIf="!loading && !error">
-  <article class="panel"><div class="panel-heading"><div><h2>Monthly expenses</h2><p>Spending trend over the last six months</p></div><span class="panel-badge">Last 6 months</span></div><div class="chart-wrap" *ngIf="monthlyData?.datasets?.[0]?.data?.length; else noData"><p-chart type="bar" [data]="monthlyData" [options]="chartOptions" /></div></article>
+  <article class="panel"><div class="panel-heading"><div><h2>Monthly expenses</h2><p>Spending trend over the last six months</p></div><span class="panel-badge">Last 6 months</span></div><div class="chart-wrap" *ngIf="stats?.transactionCount; else noData"><p-chart type="bar" [data]="monthlyData" [options]="chartOptions" /></div></article>
   <article class="panel"><div class="panel-heading"><div><h2>Expenses by category</h2><p>How spending is distributed</p></div></div><div class="donut-wrap" *ngIf="stats?.transactionCount; else noData"><p-chart type="doughnut" [data]="categoryData" [options]="doughnutOptions" /></div></article>
 </div>
 <ng-template #noData><div class="empty-chart">No expense data available yet.</div></ng-template>

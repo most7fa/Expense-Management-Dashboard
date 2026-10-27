@@ -1,5 +1,6 @@
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
+import { ChartData, ChartOptions } from 'chart.js';
 import { ChartModule } from 'primeng/chart';
 import { ExpenseService } from '../../../../core/services/expense.service';
 
@@ -12,10 +13,10 @@ import { ExpenseService } from '../../../../core/services/expense.service';
 })
 export class ReportsPage implements OnInit {
   loading = true;
-  monthlyData: any;
-  categoryData: any;
+  monthlyData: ChartData<'bar'> | null = null;
+  categoryData: ChartData<'doughnut'> | null = null;
   total = 0;
-  options: any = { maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 18 } } } };
+  readonly options: ChartOptions = { maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 18 } } } };
   constructor(private service: ExpenseService) {}
   ngOnInit(): void {
     this.service.getMonthlyChartData().subscribe(data => this.monthlyData = { labels: data.labels, datasets: [{ label: 'Expenses', data: data.values, backgroundColor: '#6478f5', borderRadius: 7 }] });
