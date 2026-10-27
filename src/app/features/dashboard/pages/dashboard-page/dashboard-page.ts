@@ -1,76 +1,57 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { CommonModule, CurrencyPipe } from '@angular/common';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Subscription, forkJoin } from 'rxjs';
+import { ChartModule } from 'primeng/chart';
 import { ExpenseService } from '../../../../core/services/expense.service';
-import { Expense, DashboardSummary } from '../../../../core/models/expense.model';
-
-// PrimeNG & PrimeIcons
-import { TableModule } from 'primeng/table';
-import { ButtonModule } from 'primeng/button';
-import { TagModule } from 'primeng/tag';
-import { SelectModule } from 'primeng/select';
-import { TagSeverity } from 'primeng/types/tag';
-import { FormsModule } from '@angular/forms';
+import { DashboardStats } from '../../../../core/models/expense.model';
 
 @Component({
   selector: 'app-dashboard-page',
   standalone: true,
-  imports: [
-    CommonModule,
-    RouterModule,
-    FormsModule,
-    TableModule,
-    ButtonModule,
-    TagModule,
-    SelectModule,
-    CurrencyPipe,
-    DatePipe
-  ],
+  imports: [CommonModule, CurrencyPipe, ChartModule],
   templateUrl: './dashboard-page.html',
-  styleUrls: ['./dashboard-page.scss']
+  styleUrl: './dashboard-page.scss'
 })
-export class DashboardPageComponent implements OnInit {
-  summary: DashboardSummary = {
-    totalExpenses: 0,
-    currentMonthExpenses: 0,
-    previousMonthExpenses: 0,
-    totalTransactions: 0,
-    topCategory: null,
-    expensesByCategory: [],
-    expensesByMonth: []
-  };
-
-  recentExpenses: Expense[] = [];
-  selectedDateRange = 'Apr 1, 2025 - Apr 30, 2025';
-  dateRanges = [
-    { label: 'Apr 1, 2025 - Apr 30, 2025', value: 'Apr 1, 2025 - Apr 30, 2025' },
-    { label: 'Current Month', value: 'current' },
-    { label: 'Last 30 Days', value: '30days' }
-  ];
+export class DashboardPage implements OnInit, OnDestroy {
+  stats: DashboardStats | null = null;
+  loading = true;
+  error = '';
+  monthlyData: any;
+  categoryData: any;
+  chartOptions: any;
+  doughnutOptions: any;
+  private subscription?: Subscription;
 
   constructor(private expenseService: ExpenseService) {}
 
   ngOnInit(): void {
-    this.loadDashboardData();
-  }
-
-  loadDashboardData(): void {
-    this.expenseService.getDashboardSummary().subscribe(data => {
-      this.summary = data;
+    this.chartOptions = {
+      maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#64748b', usePointStyle: true, padding: 18 } } },
+      scales: {
+        x: { ticks: { color: '#64748b' }, grid: { display: false } },
+        y: { beginAtZero: true, ticks: { color: '#64748b' }, grid: { color: '#eef2f7' } }
+      }
+    };
+    this.doughnutOptions = {
+      maintainAspectRatio: false,
+      cutout: '65%',
+      plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 14 } } }
+    };
+    this.subscription = forkJoin({
+      stats: this.expenseService.getDashboardStats(),
+      monthly: this.expenseService.getMonthlyChartData(),
+      categories: this.expenseService.getCategoryChartData()
+    }).subscribe({
+      next: result => {
+        this.stats = result.stats;
+        this.monthlyData = { labels: result.monthly.labels, datasets: [{ label: 'Expenses', data: result.monthly.values, backgroundColor: '#6478f5', borderRadius: 7 }] };
+        this.categoryData = { labels: result.categories.labels, datasets: [{ data: result.categories.values, backgroundColor: ['#6478f5', '#31b7a2', '#f5b544', '#ed7890', '#8d75dc', '#5aafdc', '#a7b1c2'], hoverOffset: 5 }] };
+        this.loading = false;
+      },
+      error: () => { this.error = 'Could not load dashboard data.'; this.loading = false; }
     });
-
-    this.expenseService.getExpenses({}).subscribe(expenses => {
-      this.recentExpenses = expenses.slice(0, 5); // أحدث 5 مصروفات
-    });
   }
 
-  getCategorySeverity(category: string): TagSeverity {
-    switch (category) {
-      case 'Salaries': return 'success';
-      case 'Rent': return 'warn';
-      case 'Marketing': return 'info';
-      case 'Utilities': return 'danger';
-      default: return 'secondary';
-    }
-  }
+  ngOnDestroy(): void { this.subscription?.unsubscribe(); }
 }

@@ -1,57 +1,29 @@
-import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-
-// PrimeNG
+import { Component } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
-import { SelectModule } from 'primeng/select';
-import { ToggleSwitchModule } from 'primeng/toggleswitch';
+import { ConfirmationService, MessageService } from 'primeng/api';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ToastModule } from 'primeng/toast';
-import { MessageService } from 'primeng/api';
+import { ExpenseService } from '../../../../core/services/expense.service';
 
 @Component({
   selector: 'app-settings-page',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    ButtonModule,
-    InputTextModule,
-    SelectModule,
-    ToggleSwitchModule,
-    ToastModule
-  ],
-  providers: [MessageService],
-  templateUrl: './settings-page.html'
+  imports: [CommonModule, ButtonModule, ConfirmDialogModule, ToastModule],
+  providers: [ConfirmationService, MessageService],
+  templateUrl: './settings-page.html',
+  styleUrl: './settings-page.scss'
 })
-export class SettingsPageComponent implements OnInit {
-  companyName = 'My Company LLC';
-  companyEmail = 'finance@mycompany.com';
-  taxId = 'TAX-9988231-001';
-  address = '14 Financial District, Suite 400, NY';
-
-  selectedCurrency = 'USD';
-  currencies = [
-    { label: 'USD ($)', value: 'USD' },
-    { label: 'EUR (€)', value: 'EUR' },
-    { label: 'GBP (£)', value: 'GBP' },
-    { label: 'EGP (EGP)', value: 'EGP' }
-  ];
-
-  emailNotifications = true;
-  budgetAlerts = true;
-  autoApprove = false;
-
-  constructor(private messageService: MessageService) {}
-
-  ngOnInit(): void {}
-
-  saveSettings(): void {
-    this.messageService.add({
-      severity: 'success',
-      summary: 'Settings Saved',
-      detail: 'Corporate preferences and profile updated successfully.'
+export class SettingsPage {
+  constructor(private service: ExpenseService, private confirmation: ConfirmationService, private messages: MessageService) {}
+  reset(): void {
+    this.confirmation.confirm({
+      header: 'Reset demo data',
+      message: 'This will replace your current expenses with the original sample data. Continue?',
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Reset data',
+      rejectLabel: 'Cancel',
+      accept: () => { this.service.resetDemoData(); this.messages.add({ severity: 'success', summary: 'Demo data restored', detail: 'Sample expenses have been restored.' }); }
     });
   }
 }

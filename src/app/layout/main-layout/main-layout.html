@@ -1,106 +1,16 @@
-<div class="flex h-screen bg-slate-100 overflow-hidden font-sans">
-  
-  <!-- Sidebar (القائمة الجانبية الغامقة المطابقة للصورة) -->
-  <aside class="w-64 bg-[#0f172a] text-slate-300 flex flex-col justify-between border-r border-slate-800 flex-shrink-0 select-none">
-    
-    <!-- Top Brand / Logo -->
-    <div>
-      <div class="p-6 flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
-          <i class="pi pi-wallet text-xl"></i>
-        </div>
-        <div>
-          <h1 class="text-white font-bold text-lg tracking-wide leading-none">ExpensePro</h1>
-          <span class="text-xs text-slate-400 font-medium">Manage Your Expenses</span>
-        </div>
-      </div>
-
-      <!-- Navigation Links -->
-      <nav class="px-3 py-2 space-y-1">
-        <a routerLink="/dashboard" routerLinkActive="bg-blue-600 text-white shadow-md shadow-blue-600/20 font-semibold" 
-           class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800/60 transition-all text-sm group">
-          <i class="pi pi-th-large text-base group-hover:text-blue-400"></i>
-          <span>Dashboard</span>
-        </a>
-
-        <a routerLink="/expenses" routerLinkActive="bg-blue-600 text-white shadow-md shadow-blue-600/20 font-semibold" 
-           class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800/60 transition-all text-sm group">
-          <i class="pi pi-receipt text-base group-hover:text-blue-400"></i>
-          <span>Expenses</span>
-        </a>
-
-        <a routerLink="/categories" routerLinkActive="bg-blue-600 text-white shadow-md shadow-blue-600/20 font-semibold" 
-           class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800/60 transition-all text-sm group">
-          <i class="pi pi-tags text-base group-hover:text-blue-400"></i>
-          <span>Categories</span>
-        </a>
-
-        <a routerLink="/reports" routerLinkActive="bg-blue-600 text-white shadow-md shadow-blue-600/20 font-semibold" 
-           class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800/60 transition-all text-sm group">
-          <i class="pi pi-chart-bar text-base group-hover:text-blue-400"></i>
-          <span>Reports</span>
-        </a>
-
-        <a routerLink="/settings" routerLinkActive="bg-blue-600 text-white shadow-md shadow-blue-600/20 font-semibold" 
-           class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800/60 transition-all text-sm group">
-          <i class="pi pi-cog text-base group-hover:text-blue-400"></i>
-          <span>Settings</span>
-        </a>
-      </nav>
-    </div>
-
-    <!-- Bottom Profile Info Footer -->
-    <div class="p-4 m-3 bg-slate-900/80 rounded-2xl border border-slate-800 flex items-center gap-3">
-      <div class="w-9 h-9 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-sm">
-        MC
-      </div>
-      <div class="overflow-hidden">
-        <h4 class="text-white text-xs font-bold truncate">My Company</h4>
-        <p class="text-[11px] text-slate-400 truncate">Business Expense Tracker</p>
-      </div>
-    </div>
+<div class="app-shell">
+  <div class="mobile-overlay" [class.visible]="menuOpen" (click)="closeMenu()"></div>
+  <aside class="sidebar" [class.open]="menuOpen">
+    <a routerLink="/dashboard" class="brand" (click)="closeMenu()"><span class="brand-mark"><i class="pi pi-wallet"></i></span><span><strong>Spendwise</strong><small>EXPENSE MANAGER</small></span></a>
+    <p class="nav-label">WORKSPACE</p>
+    <nav>
+      <a routerLink="/dashboard" routerLinkActive="active" (click)="closeMenu()"><i class="pi pi-th-large"></i><span>Dashboard</span></a>
+      <a routerLink="/expenses" routerLinkActive="active" (click)="closeMenu()"><i class="pi pi-receipt"></i><span>Expenses</span></a>
+      <a routerLink="/categories" routerLinkActive="active" (click)="closeMenu()"><i class="pi pi-tags"></i><span>Categories</span></a>
+      <a routerLink="/reports" routerLinkActive="active" (click)="closeMenu()"><i class="pi pi-chart-bar"></i><span>Reports</span></a>
+    </nav>
+    <p class="nav-label secondary-label">PREFERENCES</p><nav><a routerLink="/settings" routerLinkActive="active" (click)="closeMenu()"><i class="pi pi-cog"></i><span>Settings</span></a></nav>
+    <div class="sidebar-bottom"><div class="help-card"><span class="help-icon"><i class="pi pi-lightbulb"></i></span><strong>Keep spending clear</strong><p>Stay on top of company expenses with organized records.</p></div><div class="user-profile"><span class="avatar">FM</span><span><strong>Finance Manager</strong><small>Workspace account</small></span><i class="pi pi-ellipsis-h"></i></div></div>
   </aside>
-
-  <!-- Main Wrapper Area -->
-  <div class="flex-1 flex flex-col h-screen overflow-hidden">
-    
-    <!-- Top Header Navbar -->
-    <header class="h-16 bg-white border-b border-slate-200 px-8 flex items-center justify-between flex-shrink-0 shadow-sm z-10">
-      
-      <!-- Global Search Bar -->
-      <div class="w-96 relative">
-        <i class="pi pi-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-        <input 
-          type="text" 
-          placeholder="Search expenses..." 
-          class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:bg-white focus:border-blue-500 transition-all text-slate-800" />
-      </div>
-
-      <!-- Right User Profile & Notifications -->
-      <div class="flex items-center gap-4">
-        <!-- Notification Bell -->
-        <button class="w-10 h-10 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 relative transition-all">
-          <i class="pi pi-bell text-sm"></i>
-          <span class="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full animate-pulse"></span>
-        </button>
-
-        <!-- User Profile Dropdown / Info -->
-        <div class="flex items-center gap-3 pl-3 border-l border-slate-200">
-          <div class="w-9 h-9 rounded-xl bg-slate-800 text-white flex items-center justify-center font-bold text-xs">
-            JD
-          </div>
-          <div class="hidden sm:block">
-            <span class="text-sm font-bold text-slate-800 block leading-none">John Doe</span>
-            <span class="text-xs text-slate-400">Administrator</span>
-          </div>
-        </div>
-      </div>
-    </header>
-
-    <!-- Scrollable Content View Area -->
-    <main class="flex-1 overflow-y-auto bg-slate-50 p-8">
-      <router-outlet></router-outlet>
-    </main>
-
-  </div>
+  <main class="main-area"><header class="topbar"><button class="menu-toggle" type="button" (click)="menuOpen = !menuOpen"><i class="pi pi-bars"></i></button><div class="breadcrumb">Workspace <i class="pi pi-angle-right"></i> <strong>Expense management</strong></div><div class="topbar-right"><span class="status-dot"></span><span>Local workspace</span><span class="top-avatar">FM</span></div></header><div class="page-content"><router-outlet /></div><footer>Spendwise <span>•</span> Expense Management <span class="footer-right">Frontend demo · Data stored locally</span></footer></main>
 </div>

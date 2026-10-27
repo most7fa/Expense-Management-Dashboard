@@ -1,193 +1,77 @@
-import { Component, OnInit } from '@angular/core';
 import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ExpenseService } from '../../../../core/services/expense.service';
-import { Expense, ExpenseCategory, ExpenseFilter } from '../../../../core/models/expense.model';
-import { EXPENSE_CATEGORIES, PAYMENT_METHODS, PaymentMethod } from '../../../../core/constants/expense-data.constant';
-
-// PrimeNG Modules
-import { TableModule } from 'primeng/table';
+import { Subscription } from 'rxjs';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
+import { TableModule } from 'primeng/table';
 import { SelectModule } from 'primeng/select';
 import { DatePickerModule } from 'primeng/datepicker';
-import { TagModule } from 'primeng/tag';
-import { TagSeverity } from 'primeng/types/tag';
 import { DialogModule } from 'primeng/dialog';
-import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { TooltipModule } from 'primeng/tooltip';
-import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
-import { MessageService, ConfirmationService } from 'primeng/api';
-
-import { ExpenseFormDialogComponent } from '../../components/expense-form-dialog/expense-form-dialog';
+import { ConfirmationService, MessageService } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
+import { Expense, EXPENSE_CATEGORIES, PAYMENT_METHODS } from '../../../../core/models/expense.model';
+import { ExpenseService } from '../../../../core/services/expense.service';
+import { ExpenseFormDialog } from '../../components/expense-form-dialog/expense-form-dialog';
 
 @Component({
   selector: 'app-expense-list-page',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    TableModule,
-    ButtonModule,
-    InputTextModule,
-    SelectModule,
-    DatePickerModule,
-    TagModule,
-    DialogModule,
-    ToastModule,
-    ConfirmDialogModule,
-    TooltipModule,
-    CurrencyPipe,
-    DatePipe
-  ],
-  providers: [DialogService, MessageService, ConfirmationService],
+  imports: [CommonModule, FormsModule, CurrencyPipe, DatePipe, ButtonModule, InputTextModule, TableModule, SelectModule, DatePickerModule, DialogModule, ConfirmDialogModule, ToastModule, ExpenseFormDialog],
+  providers: [ConfirmationService, MessageService],
   templateUrl: './expense-list-page.html',
-  styleUrls: ['./expense-list-page.scss']
+  styleUrl: './expense-list-page.scss'
 })
-export class ExpenseListPageComponent implements OnInit {
+export class ExpenseListPage implements OnInit, OnDestroy {
   expenses: Expense[] = [];
-  isLoading = true;
-
-  searchQuery = '';
-  selectedCategory: ExpenseCategory | null = null;
-  selectedPaymentMethod: PaymentMethod | null = null;
+  loading = true;
+  search = '';
+  selectedCategory: string | null = null;
+  selectedPayment: string | null = null;
   dateRange: Date[] | null = null;
+  formVisible = false;
+  selectedExpense: Expense | null = null;
+  detailsVisible = false;
+  private subscription?: Subscription;
+  categories = [{ label: 'All categories', value: null }, ...EXPENSE_CATEGORIES.map(value => ({ label: value, value }))];
+  payments = [{ label: 'All payment methods', value: null }, ...PAYMENT_METHODS.map(value => ({ label: value, value }))];
 
-  categories = EXPENSE_CATEGORIES;
-  paymentMethods = PAYMENT_METHODS;
-  
-  selectedExpenseForView: Expense | null = null;
-  isDetailsDialogVisible = false;
-  dialogRef: DynamicDialogRef | null = null;
-
-  constructor(
-    private expenseService: ExpenseService,
-    private dialogService: DialogService,
-    private messageService: MessageService,
-    private confirmationService: ConfirmationService
-  ) {}
+  constructor(private service: ExpenseService, private confirmation: ConfirmationService, private messages: MessageService) {}
 
   ngOnInit(): void {
-    this.loadExpenses();
+    this.subscription = this.service.expenses$.subscribe(items => { this.expenses = [...items].sort((a,b) => b.date.localeCompare(a.date)); this.loading = false; });
   }
-
-  loadExpenses(): void {
-    this.isLoading = true;
-    const filter: ExpenseFilter = {
-      searchQuery: this.searchQuery,
-      category: this.selectedCategory,
-      paymentMethod: this.selectedPaymentMethod,
-      startDate: this.dateRange && this.dateRange[0] ? this.dateRange[0] : null,
-      endDate: this.dateRange && this.dateRange[1] ? this.dateRange[1] : null
-    };
-
-    this.expenseService.getExpenses(filter).subscribe({
-      next: (data) => {
-        this.expenses = data;
-        this.isLoading = false;
-      },
-      error: () => {
-        this.isLoading = false;
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to load expenses' });
-      }
-    });
+  ngOnDestroy(): void { this.subscription?.unsubscribe(); }
+  get filtered(): Expense[] {
+    const term = this.search.trim().toLowerCase();
+    return this.expenses.filter(x =>
+      (!term || x.description.toLowerCase().includes(term) || x.notes.toLowerCase().includes(term)) &&
+      (!this.selectedCategory || x.category === this.selectedCategory) &&
+      (!this.selectedPayment || x.paymentMethod === this.selectedPayment) &&
+      (!this.dateRange?.[0] || new Date(`${x.date}T00:00:00`) >= this.startOfDay(this.dateRange[0])) &&
+      (!this.dateRange?.[1] || new Date(`${x.date}T00:00:00`) <= this.endOfDay(this.dateRange[1]))
+    );
   }
-
-  onFilterChange(): void {
-    this.loadExpenses();
-  }
-
-  clearFilters(): void {
-    this.searchQuery = '';
-    this.selectedCategory = null;
-    this.selectedPaymentMethod = null;
-    this.dateRange = null;
-    this.loadExpenses();
-  }
-
-  openAddDialog(): void {
-    const dialogRef = this.dialogService.open(ExpenseFormDialogComponent, {
-      header: 'Add New Expense',
-      width: '600px',
-      breakpoints: { '640px': '90vw' },
-      contentStyle: { overflow: 'auto' },
-      baseZIndex: 10000
-    });
-
-    if (!dialogRef) return;
-    this.dialogRef = dialogRef;
-    dialogRef.onClose.subscribe((newData) => {
-      if (newData) {
-        this.expenseService.addExpense(newData).subscribe(() => {
-          this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Expense added successfully' });
-          this.loadExpenses();
-        });
-      }
-    });
-  }
-
-  openEditDialog(expense: Expense): void {
-    const dialogRef = this.dialogService.open(ExpenseFormDialogComponent, {
-      header: 'Edit Expense',
-      width: '600px',
-      breakpoints: { '640px': '90vw' },
-      contentStyle: { overflow: 'auto' },
-      baseZIndex: 10000,
-      data: { expense }
-    });
-
-    if (!dialogRef) return;
-    this.dialogRef = dialogRef;
-    dialogRef.onClose.subscribe((updatedData) => {
-      if (updatedData) {
-        this.expenseService.updateExpense(expense.id, updatedData).subscribe(() => {
-          this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Expense updated successfully' });
-          this.loadExpenses();
-        });
-      }
-    });
-  }
-
-  confirmDelete(expense: Expense): void {
-    this.confirmationService.confirm({
-      message: `Are you sure you want to delete "${expense.description}"?`,
-      header: 'Delete Confirmation',
+  private startOfDay(d: Date): Date { return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+  private endOfDay(d: Date): Date { return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999); }
+  openAdd(): void { this.selectedExpense = null; this.formVisible = true; }
+  openEdit(expense: Expense): void { this.selectedExpense = expense; this.formVisible = true; }
+  openDetails(expense: Expense): void { this.selectedExpense = expense; this.detailsVisible = true; }
+  onSaved(): void { this.messages.add({ severity: 'success', summary: 'Saved', detail: 'Expense saved successfully.' }); }
+  clearFilters(): void { this.search = ''; this.selectedCategory = null; this.selectedPayment = null; this.dateRange = null; }
+  deleteExpense(expense: Expense): void {
+    this.confirmation.confirm({
+      header: 'Delete expense',
+      message: `Delete "${expense.description}"? This action cannot be undone.`,
       icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
       acceptButtonStyleClass: 'p-button-danger',
-      accept: () => {
-        this.expenseService.deleteExpense(expense.id).subscribe(() => {
-          this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Expense deleted successfully' });
-          this.loadExpenses();
-        });
-      }
+      accept: () => this.service.deleteExpense(expense.id).subscribe({
+        next: () => this.messages.add({ severity: 'success', summary: 'Deleted', detail: 'Expense deleted successfully.' }),
+        error: () => this.messages.add({ severity: 'error', summary: 'Error', detail: 'Could not delete the expense.' })
+      })
     });
   }
-
-  viewDetails(expense: Expense): void {
-    this.selectedExpenseForView = expense;
-    this.isDetailsDialogVisible = true;
-  }
-
-  getCategorySeverity(category: ExpenseCategory): TagSeverity {
-    switch (category) {
-      case ExpenseCategory.SALARIES: return 'success';
-      case ExpenseCategory.RENT: return 'warn';
-      case ExpenseCategory.MARKETING: return 'info';
-      case ExpenseCategory.UTILITIES: return 'danger';
-      default: return 'secondary';
-    }
-  }
-
-  getCategoryBadgeClass(category: string): string {
-  switch (category) {
-    case 'Rent': return 'badge-rent';
-    case 'Salaries': return 'badge-salaries';
-    case 'Utilities': return 'badge-utilities';
-    case 'Transportation': return 'badge-transportation';
-    case 'Office Supplies': return 'badge-office';
-    case 'Marketing': return 'badge-marketing';
-    default: return 'badge-other';
-  }
-}
 }

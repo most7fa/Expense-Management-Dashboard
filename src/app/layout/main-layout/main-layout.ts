@@ -1,18 +1,15 @@
-import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Component } from '@angular/core';
+import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterLink, RouterLinkActive, RouterOutlet],
   templateUrl: './main-layout.html',
-  styleUrls: ['./main-layout.scss']
+  styleUrl: './main-layout.scss'
 })
-export class MainLayoutComponent {
-  isSidebarOpen = true;
-
-  toggleSidebar() {
-    this.isSidebarOpen = !this.isSidebarOpen;
-  }
+export class MainLayout {
+  menuOpen = false;
+  closeMenu(): void { this.menuOpen = false; }
 }
